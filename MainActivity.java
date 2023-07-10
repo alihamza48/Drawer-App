@@ -1,115 +1,105 @@
-package com.example.drawerapp;
+package com.example.fragments;
 
-import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.view.MenuItem;
 
-import java.util.Arrays;
-import java.util.Random;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
+import com.google.android.material.navigation.NavigationView;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView letterTextView, answerTextView;
-    private char[] skyLetters = {'b', 'd', 'f', 'h', 'k', 'l', 't'};
-    private char[] grassLetters = {'g', 'j', 'p', 'q', 'y'};
-    private char[] rootLetters = {'a', 'c', 'e', 'i', 'm', 'n', 'o', 'r', 's', 'u', 'v', 'w', 'x', 'z'};
-    private String answerString = "";
-
+    DrawerLayout drawerLayout;
+    NavigationView navigationView;
+    Toolbar toolbar;
+    int flag = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        drawerLayout = findViewById(R.id.drawer_layout);
+        navigationView = findViewById(R.id.nav_view);
+        toolbar = findViewById(R.id.toolbar);
 
-        letterTextView = findViewById(R.id.letter_text_view);
-        letterTextView.setText(getRandomLetter());
+        // Setting toolbar
+        setSupportActionBar(toolbar);
 
-        answerTextView = findViewById(R.id.answer_text_view);
+        // Making it so it can be added to toggle the drawer
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
-        Button skyButton = findViewById(R.id.sky_button);
-        skyButton.setOnClickListener(new View.OnClickListener() {
+        // Adding listener to drawer and passing toggle
+        drawerLayout.addDrawerListener(toggle);
+
+        // Managing state of drawer open or close
+        toggle.syncState();
+
+        // Click listener for items in the drawer
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public void onClick(View v) {
-                if (answerString == "Sky Letter") {
-                    answerTextView.setText("Awesome your answer is right");
-                } else {
-                    answerTextView.setText("Incorrect! the answer is " + answerString);
-                }
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int id = item.getItemId();
 
-                // Wait for 5 seconds and create a new question
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        letterTextView.setText(getRandomLetter());
-                        answerTextView.setText("");
+                if(id == R.id.nav_quiz){
+                    if(flag != 1){
+                        firstFragment(new Quiz(MainActivity.this), flag);
+                        flag = 1;
                     }
-                }, 5000); // 5000 milliseconds = 5 seconds
+                    else {
+                        loadFragment(new Quiz(MainActivity.this), flag);
+                    }
+                } else if (id == R.id.nav_result) {
+                    replaceFragement(new QuizResult());
+                }
+                drawerLayout.closeDrawer(GravityCompat.START);
+
+                // return will be true to view the selection
+                return true;
             }
         });
 
-        Button grassButton = findViewById(R.id.grass_button);
-        grassButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (answerString == "Grass Letter") {
-                    answerTextView.setText("Awesome your answer is right");
-                } else {
-                    answerTextView.setText("Incorrect! the answer is " + answerString);
-                }
-                // Wait for 5 seconds and create a new question
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        letterTextView.setText(getRandomLetter());
-                        answerTextView.setText("");
-                    }
-                }, 5000); // 5000 milliseconds = 5 seconds
-            }
-        });
-
-        Button rootButton = findViewById(R.id.root_button);
-        rootButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (answerString == "Root Letter") {
-                    answerTextView.setText("Awesome your answer is right");
-                } else {
-                    answerTextView.setText("Incorrect! the answer is " + answerString);
-                }
-                // Wait for 5 seconds and create a new question
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        letterTextView.setText(getRandomLetter());
-                        answerTextView.setText("");
-                    }
-                }, 5000); // 5000 milliseconds = 5 seconds
-            }
-        });
     }
 
-    private String getRandomLetter() {
-        Random random = new Random();
-        int category = random.nextInt(3);
-        char letter;
-        switch (category) {
-            case 0:
-                letter = skyLetters[random.nextInt(skyLetters.length)];
-                answerString = "Sky Letter";
-                break;
-            case 1:
-                letter = grassLetters[random.nextInt(grassLetters.length)];
-                answerString = "Grass Letter";
-                break;
-            default:
-                letter = rootLetters[random.nextInt(rootLetters.length)];
-                answerString = "Root Letter";
-                break;
+    private void replaceFragement(Fragment fragment) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.nav_host_fragment_content_main, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void onBackPressed(){
+        if(drawerLayout.isDrawerOpen(GravityCompat.START)){
+            drawerLayout.closeDrawer(GravityCompat.START);
         }
-        return String.valueOf(letter);
+        super.onBackPressed();
+    }
+
+    public void loadFragment(Fragment fragment, int flag)
+    {
+        if (flag == 1) {
+            FragmentManager fm = getSupportFragmentManager();
+            FragmentTransaction ft = fm.beginTransaction();
+            ft.replace(R.id.nav_host_fragment_content_main, fragment);
+            ft.commit();
+        }
+    }
+
+    public void firstFragment(Fragment fragment, int flag){
+        if (flag == 0) {
+            FragmentManager fm = getSupportFragmentManager();
+            FragmentTransaction ft = fm.beginTransaction();
+            ft.add(R.id.nav_host_fragment_content_main, fragment);
+            ft.commit();
+        }
     }
 }
