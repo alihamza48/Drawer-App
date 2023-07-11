@@ -1,8 +1,12 @@
 package com.example.fragments;
 
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -29,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
         toolbar = findViewById(R.id.toolbar);
+
+        Button gitHubButton = findViewById(R.id.button2);
 
         // Setting toolbar
         setSupportActionBar(toolbar);
@@ -57,12 +63,28 @@ public class MainActivity extends AppCompatActivity {
                         loadFragment(new Quiz(MainActivity.this), flag);
                     }
                 } else if (id == R.id.nav_result) {
-                    replaceFragement(new QuizResult());
+                    if(flag!=1){
+                        firstFragment(new QuizResult(), flag);
+                        flag = 1;
+                    }
+                    else{
+                        loadFragment(new QuizResult(), flag);
+                    }
                 }
                 drawerLayout.closeDrawer(GravityCompat.START);
 
                 // return will be true to view the selection
                 return true;
+            }
+        });
+
+        gitHubButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String url = "https://github.com/alihamza48/Drawer-App";
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(url));
+                startActivity(intent);
             }
         });
 
